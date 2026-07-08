@@ -1,0 +1,22 @@
+# Maven derleme çıktısı — her build'de yeniden üretiliyor, saklamaya gerek yok
+target/
+*.class
+
+# IntelliJ'in kişisel ayar dosyaları — herkesin kendi bilgisayarında farklı olur
+.idea/
+*.iml
+*.iws
+out/
+
+# VS Code (varsa)
+.vscode/
+
+# İşletim sistemi çöp dosyaları
+.DS_Store
+Thumbs.db
+
+# Log dosyaları
+*.log
+
+# Benim (Claude) doküman üretirken kullandığım geçici klasör — repo'nun parçası değil
+handbook_build/
