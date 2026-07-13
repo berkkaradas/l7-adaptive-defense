@@ -20,3 +20,6 @@ Thumbs.db
 
 # Benim (Claude) doküman üretirken kullandığım geçici klasör — repo'nun parçası değil
 handbook_build/
+
+# Claude Code'un kişisel/lokal ayarları — proje kaynak kodu değil
+.claude/
