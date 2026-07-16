@@ -14,6 +14,7 @@ services:
       retries: 10
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./db-init/create-ordersdb.sql:/docker-entrypoint-initdb.d/create-ordersdb.sql
 
   kafka:
     image: apache/kafka:4.2.0
@@ -40,6 +41,17 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-
+  orders-service:
+    build:
+      context: .
+      dockerfile: orders-service/Dockerfile
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/ordersdb
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
 volumes:
   postgres_data:
+
