@@ -3,6 +3,7 @@ WORKDIR /app
 COPY pom.xml .
 COPY auth-service/pom.xml auth-service/pom.xml
 COPY orders-service/pom.xml orders-service/pom.xml
+COPY gateway/pom.xml gateway/pom.xml
 COPY orders-service/src orders-service/src
 RUN --mount=type=cache,target=/root/.m2 \
     mvn -pl orders-service -am package -DskipTests
