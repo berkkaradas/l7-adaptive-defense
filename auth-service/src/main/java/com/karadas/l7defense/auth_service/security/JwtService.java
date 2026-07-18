@@ -28,15 +28,8 @@ public class JwtService {
                 .claim("memberId", memberId)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plus(TOKEN_LIFETIME)))
-                .signWith(key)
+                .signWith(key, Jwts.SIG.HS256)
                 .compact();
     }
 
-    public Claims validateAndParse(String token) {
-        return Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
-    }
 }
