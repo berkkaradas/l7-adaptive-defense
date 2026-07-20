@@ -3,6 +3,8 @@ package com.karadas.l7defense.gateway.filter;
 import tools.jackson.databind.ObjectMapper;
 import com.karadas.l7defense.gateway.security.JwtVerifier;
 import io.jsonwebtoken.Claims;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -25,6 +27,7 @@ import java.util.Optional;
 @Component
 public class IdentityResolutionFilter implements GlobalFilter, Ordered {
 
+    private static final Logger log = LoggerFactory.getLogger(IdentityResolutionFilter.class);
     private static final String IDENTITY_HEADER = "X-Resolved-Identity";
     private static final int MAX_USERNAME_LENGTH = 254;
 
@@ -55,6 +58,7 @@ public class IdentityResolutionFilter implements GlobalFilter, Ordered {
             return handleLoginAttempt(exchange, chain);
         }
 
+        log.warn("Rejecting unauthenticated request to {}", request.getPath());
         return reject(exchange);
     }
 
@@ -66,6 +70,8 @@ public class IdentityResolutionFilter implements GlobalFilter, Ordered {
         return jwtVerifier.verify(authHeader.substring(7));
     }
 
+    // /auth/register is the one explicit exception to "no valid JWT -> reject":
+    // it's JWT-less by nature but isn't a login attempt either (Mode ANON).
     private boolean isPublicUnauthenticated(ServerHttpRequest request) {
         return HttpMethod.POST.equals(request.getMethod())
                 && "/auth/register".equals(request.getPath().value());
@@ -87,11 +93,14 @@ public class IdentityResolutionFilter implements GlobalFilter, Ordered {
                     String ip = resolveClientIp(exchange);
                     String username = normalizeUsername(extractUsername(bytes));
                     String identity = "ATTEMPT:" + ip + "," + username;
+                    log.info("Resolved login attempt, identity={}", identity);
 
                     ServerHttpRequest requestWithHeader = exchange.getRequest().mutate()
                             .header(IDENTITY_HEADER, identity)
                             .build();
 
+                    // Body was already consumed above (WebFlux bodies are single-read) --
+                    // replay the same bytes so auth-service still gets an intact LoginRequest.
                     ServerHttpRequest repeatableRequest = new ServerHttpRequestDecorator(requestWithHeader) {
                         @Override
                         public Flux<DataBuffer> getBody() {
@@ -129,6 +138,7 @@ public class IdentityResolutionFilter implements GlobalFilter, Ordered {
     }
 
     private Mono<Void> forward(ServerWebExchange exchange, GatewayFilterChain chain, String identity) {
+        log.info("Allowing request to {}, identity={}", exchange.getRequest().getPath(), identity);
         ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
                 .header(IDENTITY_HEADER, identity)
                 .build();
@@ -140,6 +150,8 @@ public class IdentityResolutionFilter implements GlobalFilter, Ordered {
         return exchange.getResponse().setComplete();
     }
 
+    // Must run before every other filter: identity has to exist before any
+    // downstream filter (e.g. DecisionCacheFilter) can make a decision about it.
     @Override
     public int getOrder() {
         return Ordered.HIGHEST_PRECEDENCE;
