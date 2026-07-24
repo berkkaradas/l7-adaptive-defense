@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -20,6 +19,10 @@ public class DecisionCacheFilter implements GlobalFilter, Ordered {
 
     private static final Logger log = LoggerFactory.getLogger(DecisionCacheFilter.class);
     private static final String IDENTITY_HEADER = "X-Resolved-Identity";
+
+    // Exchange attribute -- internal to the Gateway's own filter chain only, never sent
+    // to a backend (unlike the identity header, which does cross that boundary).
+    public static final String RESOLVED_DECISION_ATTR = "resolvedDecision";
 
     private final DecisionCache decisionCache;
 
@@ -34,24 +37,15 @@ public class DecisionCacheFilter implements GlobalFilter, Ordered {
         String identity = exchange.getRequest().getHeaders().getFirst(IDENTITY_HEADER);
 
         Optional<CachedDecision> cached = decisionCache.get(identity);
-        if (cached.isEmpty() || !cached.get().isActive()) {
-            log.info("No active decision for identity={}, allowing", identity);
-            return chain.filter(exchange);
-        }
+        Decision decision = (cached.isPresent() && cached.get().isActive())
+                ? cached.get().decision()
+                : Decision.ALLOW;
 
-        Decision decision = cached.get().decision();
-        if (decision == Decision.DROP) {
-            log.warn("Blocking identity={} (decision=DROP, validUntil={})", identity, cached.get().validUntil());
-            exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-            return exchange.getResponse().setComplete();
-        }
-
-        // RATE_LIMIT / TARPIT are resolved here but not yet enforced -- that mechanism
-        // is a separate, not-yet-built filter (the "static rate limiter baseline").
+        log.info("Resolved decision={} for identity={}", decision, identity);
+        exchange.getAttributes().put(RESOLVED_DECISION_ATTR, decision);
         return chain.filter(exchange);
     }
 
-    // One step after IdentityResolutionFilter (HIGHEST_PRECEDENCE) -- runs second, not first.
     @Override
     public int getOrder() {
         return Ordered.HIGHEST_PRECEDENCE + 1;
