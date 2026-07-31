@@ -24,6 +24,8 @@ public class MitigationEnforcementFilter implements GlobalFilter, Ordered {
     private static final Logger log = LoggerFactory.getLogger(MitigationEnforcementFilter.class);
     private static final String IDENTITY_HEADER = "X-Resolved-Identity";
     private static final Duration TARPIT_DELAY = Duration.ofSeconds(3);
+    public static final String APPLIED_MITIGATION_ATTR = "appliedMitigation";
+    public static final String TARPIT_DELAY_MS_ATTR = "tarpitDelayMs";
 
     private final RateLimiterRegistry rateLimiterRegistry;
 
@@ -39,6 +41,7 @@ public class MitigationEnforcementFilter implements GlobalFilter, Ordered {
 
         if (decision == Decision.RATE_LIMIT) {
             log.warn("identity={} already flagged RATE_LIMIT by Risk Engine -- rejecting directly, no bucket check", identity);
+            exchange.getAttributes().put(APPLIED_MITIGATION_ATTR, Decision.RATE_LIMIT);
             exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
             return exchange.getResponse().setComplete();
         }
@@ -58,20 +61,28 @@ public class MitigationEnforcementFilter implements GlobalFilter, Ordered {
     private Mono<Void> enforceBaselineRateLimit(ServerWebExchange exchange, GatewayFilterChain chain, String identity) {
         Bucket bucket = rateLimiterRegistry.resolveBucket(identity);
         if (bucket.tryConsume(1)) {
+            exchange.getAttributes().put(APPLIED_MITIGATION_ATTR, Decision.ALLOW);
             return chain.filter(exchange);
         }
         log.warn("Baseline rate limit exceeded for identity={}", identity);
+        // Not RATE_LIMIT: this rejection came from the Gateway's own baseline bucket,
+        // not from a Risk Engine verdict. The Risk Engine must be able to tell them
+        // apart -- one is its own echo, the other is genuine evidence of abuse.
+        exchange.getAttributes().put(APPLIED_MITIGATION_ATTR, Decision.BASELINE_THROTTLE);
         exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
         return exchange.getResponse().setComplete();
     }
 
     private Mono<Void> enforceTarpit(ServerWebExchange exchange, GatewayFilterChain chain, String identity) {
         log.info("Tarpitting identity={} for {}", identity, TARPIT_DELAY);
+        exchange.getAttributes().put(APPLIED_MITIGATION_ATTR, Decision.TARPIT);
+        exchange.getAttributes().put(TARPIT_DELAY_MS_ATTR, TARPIT_DELAY.toMillis());
         return Mono.delay(TARPIT_DELAY).then(chain.filter(exchange));
     }
 
     private Mono<Void> enforceSilentDrop(ServerWebExchange exchange, String identity) {
         log.warn("Silently dropping connection for identity={}", identity);
+        exchange.getAttributes().put(APPLIED_MITIGATION_ATTR, Decision.DROP);
         if (exchange.getResponse() instanceof AbstractServerHttpResponse abstractResponse
                 && abstractResponse.getNativeResponse() instanceof HttpServerResponse nettyResponse) {
             nettyResponse.withConnection(Connection::dispose);
@@ -83,6 +94,6 @@ public class MitigationEnforcementFilter implements GlobalFilter, Ordered {
 
     @Override
     public int getOrder() {
-        return Ordered.HIGHEST_PRECEDENCE + 2;
+        return Ordered.HIGHEST_PRECEDENCE + 3;
     }
 }

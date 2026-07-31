@@ -16,6 +16,15 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./db-init/create-ordersdb.sql:/docker-entrypoint-initdb.d/create-ordersdb.sql
 
+  # Runs as root, hands the volume to Kafka's runtime user, then exits.
+  # Needed because a named volume whose mount point does not exist in the image
+  # is created owned by root, which appuser (uid 1000) cannot write to.
+  kafka-init:
+    image: busybox:1.36
+    command: ["chown", "-R", "1000:1000", "/tmp/kafka-logs"]
+    volumes:
+      - kafka_data:/tmp/kafka-logs
+
   kafka:
     image: apache/kafka:4.2.0
     environment:
@@ -30,6 +39,18 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+    volumes:
+      - kafka_data:/tmp/kafka-logs
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
+      interval: 5s
+      timeout: 10s
+      retries: 15
+
   auth-service:
     build:
       context: .
@@ -40,6 +61,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+
   orders-service:
     build:
       context: .
@@ -49,6 +71,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+
   gateway:
     build:
       context: .
@@ -58,8 +81,13 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - auth-service
-      - orders-service
+      auth-service:
+        condition: service_started
+      orders-service:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+
 volumes:
   postgres_data:
-
+  kafka_data:
