@@ -20,9 +20,20 @@ spring:
               uri: http://orders-service:8082
               predicates:
                 - Path=/items/**
+  kafka:
+    bootstrap-servers: "${KAFKA_BOOTSTRAP:kafka:9092}"
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+      compression-type: lz4
+      properties:
+        "[max.block.ms]": "0"
 
 server:
   port: 8080
+
 app:
   jwt:
     secret: ${JWT_SECRET:this-is-a-temporary-dev-secret-change-it-later-32chars-min}
+  kafka:
+    signals-topic: l7.signals

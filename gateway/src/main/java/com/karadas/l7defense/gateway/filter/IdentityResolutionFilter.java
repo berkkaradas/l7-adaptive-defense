@@ -30,6 +30,7 @@ public class IdentityResolutionFilter implements GlobalFilter, Ordered {
     private static final Logger log = LoggerFactory.getLogger(IdentityResolutionFilter.class);
     private static final String IDENTITY_HEADER = "X-Resolved-Identity";
     private static final int MAX_USERNAME_LENGTH = 254;
+    public static final String RESOLVED_IDENTITY_ATTR = "resolvedIdentity";
 
     private final JwtVerifier jwtVerifier;
     private final ObjectMapper objectMapper;
@@ -93,6 +94,7 @@ public class IdentityResolutionFilter implements GlobalFilter, Ordered {
                     String ip = resolveClientIp(exchange);
                     String username = normalizeUsername(extractUsername(bytes));
                     String identity = "ATTEMPT:" + ip + "," + username;
+                    exchange.getAttributes().put(RESOLVED_IDENTITY_ATTR, identity);
                     log.info("Resolved login attempt, identity={}", identity);
 
                     ServerHttpRequest requestWithHeader = exchange.getRequest().mutate()
@@ -139,6 +141,7 @@ public class IdentityResolutionFilter implements GlobalFilter, Ordered {
 
     private Mono<Void> forward(ServerWebExchange exchange, GatewayFilterChain chain, String identity) {
         log.info("Allowing request to {}, identity={}", exchange.getRequest().getPath(), identity);
+        exchange.getAttributes().put(RESOLVED_IDENTITY_ATTR, identity);
         ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
                 .header(IDENTITY_HEADER, identity)
                 .build();
@@ -154,6 +157,6 @@ public class IdentityResolutionFilter implements GlobalFilter, Ordered {
     // downstream filter (e.g. DecisionCacheFilter) can make a decision about it.
     @Override
     public int getOrder() {
-        return Ordered.HIGHEST_PRECEDENCE;
+        return Ordered.HIGHEST_PRECEDENCE + 1;
     }
 }

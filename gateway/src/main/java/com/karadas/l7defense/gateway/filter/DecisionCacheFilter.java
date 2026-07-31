@@ -45,9 +45,8 @@ public class DecisionCacheFilter implements GlobalFilter, Ordered {
         exchange.getAttributes().put(RESOLVED_DECISION_ATTR, decision);
         return chain.filter(exchange);
     }
-
     @Override
     public int getOrder() {
-        return Ordered.HIGHEST_PRECEDENCE + 1;
+        return Ordered.HIGHEST_PRECEDENCE + 2;
     }
 }
