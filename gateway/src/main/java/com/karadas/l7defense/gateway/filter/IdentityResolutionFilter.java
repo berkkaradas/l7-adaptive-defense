@@ -1,5 +1,6 @@
 package com.karadas.l7defense.gateway.filter;
 
+import com.karadas.l7defense.gateway.cache.Decision;
 import tools.jackson.databind.ObjectMapper;
 import com.karadas.l7defense.gateway.security.JwtVerifier;
 import io.jsonwebtoken.Claims;
@@ -59,7 +60,6 @@ public class IdentityResolutionFilter implements GlobalFilter, Ordered {
             return handleLoginAttempt(exchange, chain);
         }
 
-        log.warn("Rejecting unauthenticated request to {}", request.getPath());
         return reject(exchange);
     }
 
@@ -148,7 +148,17 @@ public class IdentityResolutionFilter implements GlobalFilter, Ordered {
         return chain.filter(exchange.mutate().request(mutatedRequest).build());
     }
 
+    // Rejected here means identity resolution failed, so nothing downstream ever saw this
+    // request. It still has to be observable: an unauthenticated scanner probing /admin,
     private Mono<Void> reject(ServerWebExchange exchange) {
+        String identity = "UNRESOLVED:" + resolveClientIp(exchange);
+        log.warn("Rejecting unauthenticated request to {}, identity={}",
+                exchange.getRequest().getPath(), identity);
+
+        exchange.getAttributes().put(RESOLVED_IDENTITY_ATTR, identity);
+        exchange.getAttributes().put(
+                MitigationEnforcementFilter.APPLIED_MITIGATION_ATTR, Decision.UNAUTHENTICATED);
+
         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
         return exchange.getResponse().setComplete();
     }

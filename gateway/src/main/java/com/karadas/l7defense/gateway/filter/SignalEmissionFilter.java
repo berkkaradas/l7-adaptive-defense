@@ -43,8 +43,10 @@ public class SignalEmissionFilter implements GlobalFilter, Ordered {
         String identity = (String) exchange.getAttributes()
                 .get(IdentityResolutionFilter.RESOLVED_IDENTITY_ATTR);
         if (identity == null) {
-            // No identity was resolved, so this was rejected with 401 before the pipeline
-            // could attribute it to anyone. Decided not to score these.
+            // Should now be unreachable: every path through IdentityResolutionFilter sets
+            // this, including rejection (4.6). Kept as a guard — publishing a signal with a
+            // null identity would be worse than dropping it, since identity is both the
+            // partition key and the scoring key.
             return;
         }
 
