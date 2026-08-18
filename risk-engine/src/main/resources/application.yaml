@@ -17,6 +17,18 @@ spring:
 app:
   kafka:
     signals-topic: l7.signals
+  window:
+    length: 180s
+    max-events-per-identity: 10000
+    purge-interval: 60s
+  store:
+    authenticated-max: 10000
+    unauthenticated-max: 5000
+  scoring:
+    weights:
+      login-failure: 10
+      baseline-throttle: 5
+      unauthenticated: 3
 
 logging:
   level:
