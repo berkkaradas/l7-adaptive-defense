@@ -4,6 +4,7 @@ COPY pom.xml .
 COPY auth-service/pom.xml auth-service/pom.xml
 COPY orders-service/pom.xml orders-service/pom.xml
 COPY gateway/pom.xml gateway/pom.xml
+COPY risk-engine/pom.xml risk-engine/pom.xml
 COPY gateway/src gateway/src
 RUN --mount=type=cache,target=/root/.m2 \
     mvn -pl gateway -am package -DskipTests
