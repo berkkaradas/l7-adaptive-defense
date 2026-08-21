@@ -22,36 +22,47 @@ public class ScoringService {
     private final int loginFailureWeight;
     private final int baselineThrottleWeight;
     private final int unauthenticatedWeight;
+    private final int serverErrorWeight;
+    private final int systemWideErrorThreshold;
+    private final double concentrationThreshold;
+
 
     public ScoringService(WindowStore windowStore,
                           @Value("${app.scoring.weights.login-failure}") int loginFailureWeight,
                           @Value("${app.scoring.weights.baseline-throttle}") int baselineThrottleWeight,
-                          @Value("${app.scoring.weights.unauthenticated}") int unauthenticatedWeight) {
+                          @Value("${app.scoring.weights.unauthenticated}") int unauthenticatedWeight,
+                            @Value("${app.scoring.weights.server-error}") int serverErrorWeight,
+                            @Value("${app.scoring.attribution.system-wide-error-threshold}") int systemWideErrorThreshold,
+                            @Value("${app.scoring.attribution.concentration-threshold}") double concentrationThreshold){
         this.windowStore = windowStore;
         this.loginFailureWeight = loginFailureWeight;
         this.baselineThrottleWeight = baselineThrottleWeight;
         this.unauthenticatedWeight = unauthenticatedWeight;
+        this.serverErrorWeight = serverErrorWeight;
+        this.systemWideErrorThreshold = systemWideErrorThreshold;
+        this.concentrationThreshold = concentrationThreshold;
     }
 
     public RiskScore scoreOf(String identity) {
-        Map<SignalKind, Integer> counts = windowStore.countsFor(identity);
+        Map<SignalKind, Integer> identityCounts = windowStore.countsFor(identity);
 
         Map<AttackType, Integer> byType = new EnumMap<>(AttackType.class);
 
         // Repeated failures against the login endpoint. Volume may be low — S2 is
         // deliberately slow — so what matters is the target, not the rate.
         byType.put(AttackType.CREDENTIAL_ATTACK,
-                count(counts, SignalKind.LOGIN_FAILURE) * loginFailureWeight);
+                count(identityCounts, SignalKind.LOGIN_FAILURE) * loginFailureWeight);
 
         // Bucket exhaustion is direct proof of exceeding the configured rate; a burst
         // of token-less requests is volumetric abuse whatever the intent behind it.
         byType.put(AttackType.VOLUMETRIC,
-                count(counts, SignalKind.BASELINE_THROTTLE) * baselineThrottleWeight
-                        + count(counts, SignalKind.UNAUTHENTICATED) * unauthenticatedWeight);
+                count(identityCounts, SignalKind.BASELINE_THROTTLE) * baselineThrottleWeight
+                        + count(identityCounts, SignalKind.UNAUTHENTICATED) * unauthenticatedWeight);
 
         // Filled in once the attribution test of 4.7 exists — scoring 5xx without it
         // would punish every identity active during a database wobble.
-        byType.put(AttackType.RESOURCE_EXHAUSTION, 0);
+        byType.put(AttackType.RESOURCE_EXHAUSTION,
+                resourceExhaustionScore(identityCounts));
 
         AttackType dominant = null;
         int total = 0;
@@ -69,5 +80,39 @@ public class ScoringService {
 
     private static int count(Map<SignalKind, Integer> counts, SignalKind kind) {
         return counts.getOrDefault(kind, 0);
+    }
+    /**
+     * Scores server errors only when this identity is plausibly their cause.
+     *
+     * <p>A 5xx describes the system's condition, not the caller's conduct. Scoring
+     * every error would mean that one database wobble punishes every identity active
+     * at that moment — the defence amplifying an incident instead of absorbing it.
+     * Ignoring them entirely would let an attacker who found an expensive query walk
+     * away from the failures they caused. So we attribute rather than choose (4.7).
+     */
+    private int resourceExhaustionScore(Map<SignalKind, Integer> identityCounts) {
+        int identityErrors = count(identityCounts, SignalKind.SERVER_ERROR);
+        if (identityErrors == 0) {
+            return 0;
+        }
+
+        int systemErrors = windowStore.globalErrorCount();
+
+        // Case 1 — nothing widespread is happening, so these errors belong to whoever
+        // triggered them.
+        if (systemErrors < systemWideErrorThreshold) {
+            return identityErrors * serverErrorWeight;
+        }
+
+        // Case 2 — something widespread is happening, but most of it comes from this
+        // identity. Without this branch an attacker raises the system-wide rate
+        // themselves and then hides inside the noise they created.
+        double share = (double) identityErrors / systemErrors;
+        if (share >= concentrationThreshold) {
+            return identityErrors * serverErrorWeight;
+        }
+
+        // Case 3 — widespread and spread out. A system condition; nobody is charged.
+        return 0;
     }
 }

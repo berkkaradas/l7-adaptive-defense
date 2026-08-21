@@ -20,6 +20,7 @@ app:
   window:
     length: 180s
     max-events-per-identity: 10000
+    global-error-max: 50000
     purge-interval: 60s
   store:
     authenticated-max: 10000
@@ -29,6 +30,17 @@ app:
       login-failure: 10
       baseline-throttle: 5
       unauthenticated: 3
+      server-error: 15
+    attribution:
+      system-wide-error-threshold: 20
+      concentration-threshold: 0.5
+  decision:
+    threshold:
+      moderate: 50
+      severe: 120
+    hysteresis-ratio: 0.5
+    ttl: 30s
+    state-ttl: 10m
 
 logging:
   level:

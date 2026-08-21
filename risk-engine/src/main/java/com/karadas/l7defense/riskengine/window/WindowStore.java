@@ -31,10 +31,12 @@ public class WindowStore {
     private final Clock clock;
     private final Duration windowLength;
     private final int maxEventsPerIdentity;
+    private final GlobalErrorWindow globalErrors;
 
     public WindowStore(Clock clock,
                        @Value("${app.window.length}") Duration windowLength,
                        @Value("${app.window.max-events-per-identity}") int maxEventsPerIdentity,
+                       @Value("${app.window.global-error-max}") int globalErrorMax,
                        @Value("${app.store.authenticated-max}") long authenticatedMax,
                        @Value("${app.store.unauthenticated-max}") long unauthenticatedMax) {
         this.clock = clock;
@@ -42,6 +44,7 @@ public class WindowStore {
         this.maxEventsPerIdentity = maxEventsPerIdentity;
         this.authenticated = Caffeine.newBuilder().maximumSize(authenticatedMax).build();
         this.unauthenticated = Caffeine.newBuilder().maximumSize(unauthenticatedMax).build();
+        this.globalErrors = new GlobalErrorWindow(globalErrorMax);
     }
 
     public void record(SignalEvent signal) {
@@ -54,6 +57,11 @@ public class WindowStore {
         IdentityWindow window = cacheFor(signal.identity())
                 .get(signal.identity(), k -> new IdentityWindow(maxEventsPerIdentity));
         window.add(new WindowEntry(signal.timestamp().toEpochMilli(), kind));
+        // Server errors are counted twice on purpose: once against the identity that
+        // saw them, once system-wide. The attribution test needs both numbers (4.7).
+        if (kind == SignalKind.SERVER_ERROR) {
+            globalErrors.record(signal.timestamp().toEpochMilli());
+        }
     }
 
     public Map<SignalKind, Integer> countsFor(String identity) {
@@ -61,6 +69,10 @@ public class WindowStore {
         return window == null ? Map.of() : window.countsSince(cutoff());
     }
 
+    /** Total server errors across all identities in the current window. */
+    public int globalErrorCount() {
+        return globalErrors.countSince(cutoff());
+    }
     /**
      * Removes expired events from every identity, and drops identities left empty.
      * Runs on a scheduler thread, concurrently with the Kafka listener — which is why
@@ -80,6 +92,7 @@ public class WindowStore {
                     removedIdentities++;
                 }
             }
+            removedEvents += globalErrors.purgeOlderThan(cutoff);
         }
 
         if (removedEvents > 0 || removedIdentities > 0) {
