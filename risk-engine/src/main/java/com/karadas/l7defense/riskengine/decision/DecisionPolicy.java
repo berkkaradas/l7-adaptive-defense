@@ -98,10 +98,22 @@ public class DecisionPolicy {
      * Böylece merdiven korunuyor ama tepki tehdide uygun oluyor.
      */
     private Decision mitigationFor(AttackType type, Severity severity) {
-        if (severity == Severity.NONE || type == null) {
+        if (severity == Severity.NONE) {
             return Decision.ALLOW;
         }
-        return switch (type) {
+
+        // Pencere uzunluğundan (180 sn) daha uzun süre ceza altında kalan bir
+        // kimliğin tipli kanıtlarının tamamı zaman aşımına uğrayabilir; geriye
+        // yalnızca ısrar puanı kalır ve baskın tip null olur. Bu durumda
+        // gözlenebilen tek davranış "engellenmesine rağmen istek atmaya devam
+        // etmek"tir, ki bu tanımı gereği hacimsel davranıştır.
+        //
+        // Eski kod burada ALLOW dönüyordu: yani bir kimlik, YETERİNCE UZUN
+        // cezalandırıldığı için serbest kalıyordu. 4.13'ün ortadan kaldırmak
+        // için var olduğu hata tam olarak buydu (4.13.2).
+        AttackType effective = (type == null) ? AttackType.VOLUMETRIC : type;
+
+        return switch (effective) {
             // Brute force'u yavaşlatmak denemeyi ekonomik olmaktan çıkarıyor;
             // sadece hız kesmek saldırganı durdurmuyor, sadece rahatsız ediyor.
             case CREDENTIAL_ATTACK -> severity == Severity.SEVERE
@@ -116,7 +128,9 @@ public class DecisionPolicy {
             // Diğer tiplerde saldırgan kendi kaynağını harcıyor, burada
             // başkasınınkini. Tolerans bandı bu yüzden daha dar: düşük şiddette
             // bile doğrudan DROP.
-            case RESOURCE_EXHAUSTION -> Decision.DROP;
+            case RESOURCE_EXHAUSTION -> severity == Severity.SEVERE
+                    ? Decision.DROP
+                    : Decision.RATE_LIMIT;
         };
     }
 }

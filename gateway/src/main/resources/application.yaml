@@ -28,7 +28,14 @@ spring:
       compression-type: lz4
       properties:
         "[max.block.ms]": "0"
-
+    consumer:
+      group-id: gateway
+      auto-offset-reset: latest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
+      properties:
+        "[spring.json.use.type.headers]": "false"
+        "[spring.json.value.default.type]": "com.karadas.l7defense.gateway.decision.DecisionEvent"
 server:
   port: 8080
 
@@ -37,3 +44,4 @@ app:
     secret: ${JWT_SECRET:this-is-a-temporary-dev-secret-change-it-later-32chars-min}
   kafka:
     signals-topic: l7.signals
+    decisions-topic: l7.decisions

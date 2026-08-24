@@ -11,12 +11,16 @@ spring:
       properties:
         "[spring.json.use.type.headers]": "false"
         "[spring.json.value.default.type]": "com.karadas.l7defense.riskengine.signal.SignalEvent"
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
     listener:
       concurrency: 1
 
 app:
   kafka:
     signals-topic: l7.signals
+    decisions-topic: l7.decisions
   window:
     length: 180s
     max-events-per-identity: 10000
@@ -31,6 +35,7 @@ app:
       baseline-throttle: 5
       unauthenticated: 3
       server-error: 15
+      mitigated-retry: 5
     attribution:
       system-wide-error-threshold: 20
       concentration-threshold: 0.5
