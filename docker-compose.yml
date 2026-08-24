@@ -89,7 +89,15 @@ services:
         condition: service_started
       kafka:
         condition: service_healthy
-
+  risk-engine:
+    build:
+      context: .
+      dockerfile: risk-engine/Dockerfile
+    environment:
+      KAFKA_BOOTSTRAP: kafka:9092
+    depends_on:
+      kafka:
+        condition: service_healthy
 volumes:
   postgres_data:
   kafka_data:
