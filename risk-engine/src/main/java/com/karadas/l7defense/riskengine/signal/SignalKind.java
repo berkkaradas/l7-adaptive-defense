@@ -10,18 +10,24 @@ public enum SignalKind {
     BASELINE_THROTTLE,
     UNAUTHENTICATED,
     SERVER_ERROR,
+    MITIGATED_RETRY,
     IGNORED;
 
     public static SignalKind of(SignalEvent signal) {
         Decision applied = signal.mitigationApplied();
 
-        // Our own mitigation echoing back. Scoring these would close the feedback
-        // loop on itself and make de-escalation unreachable (Log 3.1.1).
-        if (applied == Decision.RATE_LIMIT
-                || applied == Decision.TARPIT
-                || applied == Decision.DROP) {
-            return IGNORED;
+        // Ceza altındayken atılmış bir istek. Dönen cevabı biz ürettiğimiz için
+        // cevap bir gözlem değil — ama isteğin ATILMIŞ olması başlı başına kanıt.
+        // 429 gördükten sonra devam etmek ısrardır; düzgün bir istemci bunu
+        // yapmaz, geri çekilir (Karar Kaydı 4.13).
+        if (applied == Decision.RATE_LIMIT || applied == Decision.DROP) {
+            return MITIGATED_RETRY;
         }
+
+        // TARPIT bilerek yukarıdaki listede yok. Tarpit isteği engellemiyor,
+        // yalnızca 3 saniye geciktiriyor: istek gerçekten auth-service'e gidiyor
+        // ve dönen 401 gerçek bir başarısız denemedir. Aşağıdaki statü kontrolleri
+        // onu zaten doğru sınıflandırıyor, ek bir dala gerek yok (4.13.1).
 
         // Not a verdict we issued — independent evidence of exceeding the rate.
         if (applied == Decision.BASELINE_THROTTLE) {

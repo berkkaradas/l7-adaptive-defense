@@ -25,6 +25,7 @@ public class ScoringService {
     private final int serverErrorWeight;
     private final int systemWideErrorThreshold;
     private final double concentrationThreshold;
+    private final int persistenceWeight;
 
 
     public ScoringService(WindowStore windowStore,
@@ -33,14 +34,17 @@ public class ScoringService {
                           @Value("${app.scoring.weights.unauthenticated}") int unauthenticatedWeight,
                             @Value("${app.scoring.weights.server-error}") int serverErrorWeight,
                             @Value("${app.scoring.attribution.system-wide-error-threshold}") int systemWideErrorThreshold,
-                            @Value("${app.scoring.attribution.concentration-threshold}") double concentrationThreshold){
+                            @Value("${app.scoring.attribution.concentration-threshold}") double concentrationThreshold,
+                            @Value("${app.scoring.weights.mitigated-retry}") int persistenceWeight
+                            ){
         this.windowStore = windowStore;
         this.loginFailureWeight = loginFailureWeight;
         this.baselineThrottleWeight = baselineThrottleWeight;
         this.unauthenticatedWeight = unauthenticatedWeight;
-        this.serverErrorWeight = serverErrorWeight;
         this.systemWideErrorThreshold = systemWideErrorThreshold;
         this.concentrationThreshold = concentrationThreshold;
+        this.serverErrorWeight = serverErrorWeight;
+        this.persistenceWeight = persistenceWeight;
     }
 
     public RiskScore scoreOf(String identity) {
@@ -75,7 +79,16 @@ public class ScoringService {
                 dominant = type;
             }
         }
-        return new RiskScore(Map.copyOf(byType), dominant, best, total);
+
+        // Israr, hiçbir saldırı tipine yazılmıyor. 429'a rağmen devam etmek bir
+        // saldırı TÜRÜ değil, verilen cezaya karşı gösterilen bir DAVRANIŞ.
+        // Toplama eklenip şiddeti yükseltiyor, ama baskın tipi değiştirmediği
+        // için hangi cezanın verileceğini bozmuyor — 4.5'in "tip türü, şiddet
+        // seviyeyi belirler" kuralının doğrudan devamı (4.13).
+        int persistence = count(identityCounts, SignalKind.MITIGATED_RETRY) * persistenceWeight;
+        total += persistence;
+
+        return new RiskScore(Map.copyOf(byType), dominant, best, persistence, total);
     }
 
     private static int count(Map<SignalKind, Integer> counts, SignalKind kind) {

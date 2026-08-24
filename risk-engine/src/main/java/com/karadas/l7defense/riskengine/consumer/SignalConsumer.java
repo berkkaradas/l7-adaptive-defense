@@ -1,6 +1,7 @@
 package com.karadas.l7defense.riskengine.consumer;
 
 import com.karadas.l7defense.riskengine.decision.DecisionPolicy;
+import com.karadas.l7defense.riskengine.decision.DecisionPublisher;
 import com.karadas.l7defense.riskengine.decision.RiskDecision;
 import com.karadas.l7defense.riskengine.scoring.RiskScore;
 import com.karadas.l7defense.riskengine.scoring.ScoringService;
@@ -20,13 +21,16 @@ public class SignalConsumer {
     private final WindowStore windowStore;
     private final ScoringService scoringService;
     private final DecisionPolicy decisionPolicy;
+    private final DecisionPublisher decisionPublisher;
 
     public SignalConsumer(WindowStore windowStore,
                           ScoringService scoringService,
-                          DecisionPolicy decisionPolicy) {
+                          DecisionPolicy decisionPolicy,
+                          DecisionPublisher decisionPublisher) {
         this.windowStore = windowStore;
         this.scoringService = scoringService;
         this.decisionPolicy = decisionPolicy;
+        this.decisionPublisher = decisionPublisher;
     }
 
     @KafkaListener(topics = "${app.kafka.signals-topic}", groupId = "risk-engine")
@@ -37,16 +41,12 @@ public class SignalConsumer {
         RiskDecision decision = decisionPolicy.decide(signal.identity(), score);
 
         if (decision.shouldPublish()) {
-            // Adım 5'te bu satırın yerine l7.decisions topic'ine publish gelecek.
-            log.warn("Decision identity={} -> {} [{} / {}] score={} validUntil={}",
-                    decision.identity(), decision.decision(),
-                    decision.attackType(), decision.severity(),
-                    decision.score(), decision.validUntil());
+            decisionPublisher.publish(decision);
         } else if (score.hasEvidence()) {
-            log.info("identity={} kind={} -> total={} dominant={}({}) breakdown={}",
+            log.info("identity={} kind={} -> total={} dominant={}({}) persistence={} breakdown={}",
                     signal.identity(), SignalKind.of(signal),
                     score.totalScore(), score.dominantType(), score.dominantScore(),
-                    score.byType());
+                    score.persistenceScore(), score.byType());
         }
     }
 }
