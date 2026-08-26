@@ -65,3 +65,15 @@ export const ATTACK = {
     rate: Number(__ENV.ATTACK_RATE || 1),
     timeUnit: __ENV.ATTACK_UNIT || '2s',
 };
+
+// Kurbanın kendi hesabına giriş deneme hızı: 10 saniyede 1.
+// Gerçekçi bir insan davranışı — biri seni hesabından atmaya çalışıyorsa
+// arka arkaya birkaç kez denersin, saniyede beş kez değil.
+export const INNOCENT_LOGIN = {
+    rate: Number(__ENV.INNOCENT_RATE || 1),
+    timeUnit: __ENV.INNOCENT_UNIT || '10s',
+};
+
+// Aynı NAT'ın arkasında, KENDİ hesabına giriş yapmaya çalışan meşru
+// kullanıcı sayısı. CDR bunlar üzerinden ölçülüyor.
+export const INNOCENT_USERS = Number(__ENV.INNOCENT_USERS || 2);

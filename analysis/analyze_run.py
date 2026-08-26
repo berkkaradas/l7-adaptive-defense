@@ -92,7 +92,21 @@ def read_jsonl(path):
             continue   # console consumer sonda "Processed a total of N messages" basıyor
     return out
 
+def within_run(decisions, requests):
+    """
+    Yalnızca bu koşu sırasında üretilmiş kararları tut.
 
+    Offset penceresi birincil mekanizma, bu ikinci savunma hattı: yanlış
+    offset girilirse ya da eski bir döküm dosyada kalırsa, başka bir koşunun
+    kararları sessizce bu koşunun sonuçlarına karışır. Zaman aralığı filtresi
+    bunu yakalıyor ve kaç kararın atıldığını raporluyor.
+    """
+    if not requests or not decisions:
+        return decisions, 0
+    start = min(r["time"] for r in requests)
+    end = max(r["time"] for r in requests)
+    kept = [d for d in decisions if start <= parse_ts(d["issuedAt"]) <= end]
+    return kept, len(decisions) - len(kept)
 # --------------------------------------------------------------- yükleme
 
 def load_requests(run_dir):
@@ -111,8 +125,7 @@ def load_requests(run_dir):
         requests.append({
             "time": parse_ts(data["time"]),
             "duration_ms": data["value"],
-            # setup istekleri hiçbir senaryoda koşmadığı için etiketsiz gelir
-            "phase": tags.get("scenario", "setup"),
+            "phase": tags.get("phase") or tags.get("scenario", "setup"),
             "role": tags.get("role"),
             "identity": tags.get("identity"),
             "status": tags.get("status"),
@@ -157,7 +170,16 @@ def identities_by_role(requests):
 
 
 def first_request_at(requests, identity):
-    times = [r["time"] for r in requests if r["identity"] == identity]
+    """
+    Bu kimliğin ilk KÖTÜ NİYETLİ isteği (11.2: t_first_malicious_request).
+
+    Rol filtresi şart. S3'te kurban saldırganla aynı Mode B kimliğini
+    paylaşıyor ve saldırı başlamadan önce de giriş deniyor; role bakmazsak
+    "ilk istek" olarak kurbanın masum girişini buluruz ve TTD, saldırıdan
+    önceki süreyi de içine alarak şişer.
+    """
+    times = [r["time"] for r in requests
+             if r["identity"] == identity and r["role"] == "attacker"]
     return min(times) if times else None
 
 
@@ -209,6 +231,21 @@ def blocked_identities(requests):
     return {r["identity"] for r in requests
             if r["status"] and r["status"] != "200" and r["identity"]}
 
+def collateral_damage(requests):
+    """
+    Saldırı fazında masum kullanıcının isteklerinin kaçı reddedildi.
+
+    Kimlik bazlı değil İSTEK bazlı. "Bu kimlik zarar gördü mü" ikili bir
+    bilgi; asıl merak ettiğimiz zararın DERECESİ — 18 giriş denemesinin
+    hepsi mi reddedildi, ikisi mi. Tek masum kullanıcıyla kimlik bazlı
+    ölçüm yalnızca 0 veya 1 üretebilirdi.
+    """
+    innocent = [r for r in requests
+                if r["role"] == "innocent" and r["phase"] == "attack"]
+    if not innocent:
+        return None
+    refused = [r for r in innocent if r["status"] not in (None, "200")]
+    return round(len(refused) / len(innocent), 4)
 
 def precision_recall(roles, punished):
     legitimate = set().union(*(roles[r] for r in LEGITIMATE_ROLES if r in roles)) \
@@ -258,7 +295,7 @@ def validity(run_dir, requests):
                 f"yetişemedi, bu koşu geçersiz")
 
     non200 = [r for r in requests
-              if r["role"] in LEGITIMATE_ROLES and r["status"] not in (None, "200")]
+              if r["role"] == "legit" and r["status"] not in (None, "200")]
     if non200:
         codes = defaultdict(int)
         for r in non200:
@@ -267,7 +304,14 @@ def validity(run_dir, requests):
 
     return problems
 
-
+def refusal_rate(requests, role):
+    """Saldırı fazında bu rolün isteklerinin kaçı reddedildi (istek bazlı)."""
+    subset = [r for r in requests
+              if r["role"] == role and r["phase"] == "attack"]
+    if not subset:
+        return None
+    refused = [r for r in subset if r["status"] not in (None, "200")]
+    return round(len(refused) / len(subset), 4)
 # --------------------------------------------------------------- rapor
 
 def main():
@@ -276,24 +320,38 @@ def main():
         raise SystemExit(2)
 
     run_dir = Path(sys.argv[1])
+    if not run_dir.is_dir():
+        print(f"klasör yok: {run_dir}")
+        raise SystemExit(2)
+    if not (run_dir / "k6_raw.json").exists():
+        print(f"k6_raw.json yok: {run_dir} -> k6 çıktısı bu klasöre yazılmamış")
+        raise SystemExit(2)
+
     requests = load_requests(run_dir)
+
+    # Zaman filtresi requests'e ihtiyaç duyuyor, o yüzden sırası önemli.
     decisions = read_jsonl(run_dir / "decisions.jsonl")
+    decisions, out_of_window = within_run(decisions, requests)
+
     roles = identities_by_role(requests)
 
     attackers = roles.get("attacker", set())
-    legitimate = set().union(*(roles[r] for r in LEGITIMATE_ROLES if r in roles)) \
-        if any(r in roles for r in LEGITIMATE_ROLES) else set()
+    legitimate = set().union(*(roles[r] for r in LEGITIMATE_ROLES if r in roles))         if any(r in roles for r in LEGITIMATE_ROLES) else set()
     innocents = roles.get("innocent", set())
 
     punished = punished_identities(decisions)
     blocked = blocked_identities(requests)
 
     problems = validity(run_dir, requests)
+    if out_of_window:
+        problems.append(
+            f"{out_of_window} karar bu koşunun zaman aralığı dışındaydı ve atıldı "
+            f"-> döküm penceresi yanlış ya da dosya bayat")
     unmatched = unmatched_identities(roles, punished)
     if unmatched:
         problems.append(
             f"karar verilen ama hiçbir role eşleşmeyen kimlikler: {unmatched} "
-            f"-> CLIENT_IP yanlış olabilir")
+            f"-> CLIENT_IP yanlış ya da döküm bayat olabilir")
 
     metrics = {
         "run": run_dir.name,
@@ -303,7 +361,8 @@ def main():
         "latency_by_phase": latency_by_phase(requests),
         "ttd_seconds": time_to_detect(requests, decisions, attackers),
         "fpr": round(len(punished & legitimate) / len(legitimate), 4) if legitimate else None,
-        "cdr": round(len(blocked & innocents) / len(innocents), 4) if innocents else None,
+        "cdr": refusal_rate(requests, "innocent"),
+        "victim_lockout": refusal_rate(requests, "victim"),
         "precision_recall": precision_recall(roles, punished),
         "classification": classification(decisions),
         "problems": problems,
@@ -311,7 +370,12 @@ def main():
 
     (run_dir / "metrics.json").write_text(
         json.dumps(metrics, indent=2, ensure_ascii=False), encoding="utf-8")
-
+    if not run_dir.is_dir():
+        print(f"klasör yok: {run_dir}")
+        raise SystemExit(2)
+    if not (run_dir / "k6_raw.json").exists():
+        print(f"k6_raw.json yok: {run_dir} -> k6 çıktısı bu klasöre yazılmamış")
+        raise SystemExit(2)
     # ------------------------------------------------------------ ekran
     print(f"\n=== {metrics['run']} ===")
     print(f"{len(requests)} istek, {len(decisions)} karar")
@@ -338,7 +402,8 @@ def main():
             print(f"  {identity:<28}{seconds if seconds is not None else 'YAKALANMADI'}")
 
     pr = metrics["precision_recall"]
-    print(f"\nFPR  {metrics['fpr']}    CDR  {metrics['cdr']}")
+    print(f"\nFPR  {metrics['fpr']}    CDR  {metrics['cdr']}    "
+              f"kurban kilidi  {metrics['victim_lockout']}")
     print(f"Precision {pr['precision']}  Recall {pr['recall']}  "
           f"(TP {pr['tp']} / FP {pr['fp']} / FN {pr['fn']})")
 

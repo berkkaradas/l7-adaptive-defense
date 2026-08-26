@@ -1,0 +1,75 @@
+{
+  "run": "s3smoke",
+  "requests": 294,
+  "decisions": 11,
+  "identities": {
+    "legit": [
+      "AUTH:36",
+      "AUTH:37",
+      "AUTH:38",
+      "AUTH:39",
+      "AUTH:40"
+    ],
+    "victim": [
+      "ATTEMPT:172.19.0.1,victim_1_r1787757565460"
+    ],
+    "innocent": [
+      "ATTEMPT:172.19.0.1,innocent_1_r1787757565460",
+      "ATTEMPT:172.19.0.1,innocent_2_r1787757565460"
+    ],
+    "attacker": [
+      "ATTEMPT:172.19.0.1,victim_1_r1787757565460"
+    ]
+  },
+  "latency_by_phase": {
+    "warmup": {
+      "n": 50,
+      "median": 8.02,
+      "p90": 14.11,
+      "p95": 16.37,
+      "max": 19.47
+    },
+    "baseline": {
+      "n": 53,
+      "median": 7.41,
+      "p90": 13.46,
+      "p95": 15.48,
+      "max": 126.77
+    },
+    "attack": {
+      "n": 104,
+      "median": 7.19,
+      "p90": 14.05,
+      "p95": 15.4,
+      "max": 116.13
+    },
+    "recovery": {
+      "n": 53,
+      "median": 7.4,
+      "p90": 11.64,
+      "p95": 13.59,
+      "max": 83.29
+    }
+  },
+  "ttd_seconds": {
+    "ATTEMPT:172.19.0.1,victim_1_r1787757565460": 7.956
+  },
+  "fpr": 0.0,
+  "cdr": 0.0,
+  "victim_lockout": 0.6667,
+  "precision_recall": {
+    "tp": 1,
+    "fp": 0,
+    "fn": 0,
+    "precision": 1.0,
+    "recall": 1.0
+  },
+  "classification": {
+    "ATTEMPT:172.19.0.1,victim_1_r1787757565460": {
+      "CREDENTIAL_ATTACK": 11
+    }
+  },
+  "problems": [
+    "16 karar bu koşunun zaman aralığı dışındaydı ve atıldı -> döküm penceresi yanlış ya da dosya bayat"
+  ]
+}
