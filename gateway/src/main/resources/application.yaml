@@ -45,3 +45,7 @@ app:
   kafka:
     signals-topic: l7.signals
     decisions-topic: l7.decisions
+  ratelimit:
+    capacity: 20
+    refill-tokens: 2
+    refill-period: 1s

@@ -1,0 +1,65 @@
+{
+  "run": "s2smoke",
+  "requests": 273,
+  "decisions": 7,
+  "identities": {
+    "legit": [
+      "AUTH:20",
+      "AUTH:21",
+      "AUTH:22",
+      "AUTH:23",
+      "AUTH:24"
+    ],
+    "attacker": [
+      "ATTEMPT:172.19.0.1,legit_1_r1787752085605"
+    ]
+  },
+  "latency_by_phase": {
+    "warmup": {
+      "n": 50,
+      "median": 8.41,
+      "p90": 12.26,
+      "p95": 13.92,
+      "max": 15.15
+    },
+    "baseline": {
+      "n": 51,
+      "median": 8.32,
+      "p90": 10.25,
+      "p95": 11.77,
+      "max": 17.72
+    },
+    "attack": {
+      "n": 101,
+      "median": 7.67,
+      "p90": 10.21,
+      "p95": 13.77,
+      "max": 83.28
+    },
+    "recovery": {
+      "n": 50,
+      "median": 7.91,
+      "p90": 12.16,
+      "p95": 14.0,
+      "max": 21.02
+    }
+  },
+  "ttd_seconds": {
+    "ATTEMPT:172.19.0.1,legit_1_r1787752085605": 8.007
+  },
+  "fpr": 0.0,
+  "cdr": null,
+  "precision_recall": {
+    "tp": 1,
+    "fp": 0,
+    "fn": 0,
+    "precision": 1.0,
+    "recall": 1.0
+  },
+  "classification": {
+    "ATTEMPT:172.19.0.1,legit_1_r1787752085605": {
+      "CREDENTIAL_ATTACK": 7
+    }
+  },
+  "problems": []
+}
