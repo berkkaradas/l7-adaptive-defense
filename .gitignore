@@ -23,3 +23,4 @@ handbook_build/
 
 # Claude Code'un kişisel/lokal ayarları — proje kaynak kodu değil
 .claude/
+__pycache__/
