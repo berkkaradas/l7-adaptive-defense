@@ -24,3 +24,7 @@ handbook_build/
 # Claude Code'un kişisel/lokal ayarları — proje kaynak kodu değil
 .claude/
 __pycache__/
+
+# Duman koşuları — hattı doğrulamak için, veri değil. Gerçek deney koşuları
+# (runs/S1_adaptive_01 gibi) bilerek takip ediliyor: tezin kanıtı onlar.
+runs/*smoke*/

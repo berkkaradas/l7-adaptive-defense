@@ -85,7 +85,10 @@ MSc thesis project (Omer Berk Karadas, Swansea). This file is loaded every sessi
 
 - At the end of any substantial session, update `..\Side Docks\SESSION_HANDOFF.md`
   (state, decisions made, open questions, next step).
-- Timeline: thesis due ~15 Sep 2026; holiday 4–11 Aug untouchable; supervisor demo early Aug.
+- Timeline: University deadline 30 Sep 2026, 14:00 (confirmed from Project Handbook v13.2,
+  §7 — submission via Canvas, module CSPM20/CSPM20J). ~15 Sep was an internal working
+  buffer, not the real cutoff — keep it as a personal target but don't confuse the two.
+  Holiday 4–11 Aug untouchable; supervisor demo early Aug.
   Cut order if slipping: drop S5 → narrow sensitivity analysis → drop Grafana polish.
   Never cut: multiple experiment runs, ablations, writing time.
 
