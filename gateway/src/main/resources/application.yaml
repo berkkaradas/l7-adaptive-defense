@@ -5,6 +5,14 @@ spring:
     gateway:
       server:
         webflux:
+          # Backend cagrilarinin sinirlari. Spring Cloud Gateway'in bunlar icin
+          # VARSAYILANI YOK (5.0.2 configuration-metadata'da default=none) --
+          # ayarlanmazsa olu bir backend'e giden istek suresiz asili kaliyor.
+          # Ilk S4 kosusunda bu 30 saniyeye kadar cikti ve deneyi gecersiz kildi
+          # (Karar Kaydi 16.8).
+          httpclient:
+            connect-timeout: 1000        # milisaniye (Integer)
+            response-timeout: 2s         # Duration
           routes:
             - id: auth-route
               uri: http://auth-service:8081
