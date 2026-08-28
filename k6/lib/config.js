@@ -77,3 +77,20 @@ export const INNOCENT_LOGIN = {
 // Aynı NAT'ın arkasında, KENDİ hesabına giriş yapmaya çalışan meşru
 // kullanıcı sayısı. CDR bunlar üzerinden ölçülüyor.
 export const INNOCENT_USERS = Number(__ENV.INNOCENT_USERS || 2);
+
+// S4 hızları. İkisi de bilerek bucket tavanının (2 istek/sn) ALTINDA.
+//
+// Saldırgan 1.5/sn kalmalı çünkü tavanı aşarsa istekleri 429 yiyip
+// BASELINE_THROTTLE üretir, o da VOLUMETRIC skoruna yazılır ve baskın tip
+// RESOURCE_EXHAUSTION olmaktan çıkar. Ölçmek istediğimiz şeyi kaybederiz.
+//
+// Meşru trafik toplam 1/sn (kişi başı 0.2/sn) -- saldırganın hata
+// çoğunluğunu tutabilmesi için bilerek düşük:
+//   saldırgan   1.5/sn × 180 sn = 270 hata  -> %60 pay  -> yakalanır
+//   meşru (5)   1.0/sn × 180 sn = 180 hata  -> kişi başı %8 -> korunur
+export const DEGRADED = {
+    legitRate: Number(__ENV.S4_LEGIT_RATE || 1),
+    legitUnit: __ENV.S4_LEGIT_UNIT || '1s',
+    attackerRate: Number(__ENV.S4_ATTACK_RATE || 3),
+    attackerUnit: __ENV.S4_ATTACK_UNIT || '2s',
+};
