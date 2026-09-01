@@ -1,0 +1,14 @@
+﻿run_id=S2_adaptive_01
+scenario=s2
+condition=adaptive
+repeat=1
+smoke=False
+started_at=2026-08-29T09:36:49
+finished_at=2026-08-29T09:42:52
+decisions_offset_start=547
+decisions_offset_end=634
+decisions_count=87
+consumer_lag_after=0
+gateway_drop_reports=1
+verdict=VALID
+invalid_reasons=

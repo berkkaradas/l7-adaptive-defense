@@ -1,0 +1,69 @@
+{
+  "run": "S3_baseline_03",
+  "requests": 1972,
+  "decisions": 0,
+  "identities": {
+    "legit": [
+      "AUTH:276",
+      "AUTH:277",
+      "AUTH:278",
+      "AUTH:279",
+      "AUTH:280"
+    ],
+    "innocent": [
+      "ATTEMPT:172.19.0.1,innocent_1_r1787999410929",
+      "ATTEMPT:172.19.0.1,innocent_2_r1787999410929"
+    ],
+    "victim": [
+      "ATTEMPT:172.19.0.1,victim_1_r1787999410929"
+    ],
+    "attacker": [
+      "ATTEMPT:172.19.0.1,victim_1_r1787999410929"
+    ]
+  },
+  "latency_by_phase": {
+    "warmup": {
+      "n": 301,
+      "median": 9.55,
+      "p90": 17.05,
+      "p95": 21.0,
+      "max": 470.27
+    },
+    "baseline": {
+      "n": 308,
+      "median": 7.12,
+      "p90": 13.12,
+      "p95": 15.51,
+      "max": 93.49
+    },
+    "attack": {
+      "n": 919,
+      "median": 5.62,
+      "p90": 9.05,
+      "p95": 10.82,
+      "max": 102.47
+    },
+    "recovery": {
+      "n": 306,
+      "median": 5.44,
+      "p90": 9.42,
+      "p95": 10.59,
+      "max": 79.53
+    }
+  },
+  "ttd_seconds": {
+    "ATTEMPT:172.19.0.1,victim_1_r1787999410929": null
+  },
+  "fpr": 0.0,
+  "cdr": 0.0,
+  "victim_lockout": 0.0,
+  "precision_recall": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 1,
+    "precision": null,
+    "recall": 0.0
+  },
+  "classification": {},
+  "problems": []
+}

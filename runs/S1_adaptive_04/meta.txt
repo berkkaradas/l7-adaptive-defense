@@ -1,0 +1,14 @@
+﻿run_id=S1_adaptive_04
+scenario=s1
+condition=adaptive
+repeat=4
+smoke=False
+started_at=2026-08-29T12:02:56
+finished_at=2026-08-29T12:08:58
+decisions_offset_start=2565
+decisions_offset_end=2565
+decisions_count=0
+consumer_lag_after=0
+gateway_drop_reports=1
+verdict=VALID
+invalid_reasons=

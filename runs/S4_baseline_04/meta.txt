@@ -1,0 +1,14 @@
+﻿run_id=S4_baseline_04
+scenario=s4
+condition=baseline
+repeat=4
+smoke=False
+started_at=2026-08-29T12:35:42
+finished_at=2026-08-29T12:41:44
+decisions_offset_start=2881
+decisions_offset_end=2881
+decisions_count=0
+consumer_lag_after=645
+gateway_drop_reports=1
+verdict=VALID
+invalid_reasons=

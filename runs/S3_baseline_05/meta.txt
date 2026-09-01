@@ -1,0 +1,14 @@
+﻿run_id=S3_baseline_05
+scenario=s3
+condition=baseline
+repeat=5
+smoke=False
+started_at=2026-08-29T13:15:14
+finished_at=2026-08-29T13:21:16
+decisions_offset_start=3420
+decisions_offset_end=3420
+decisions_count=0
+consumer_lag_after=1974
+gateway_drop_reports=0
+verdict=VALID
+invalid_reasons=
