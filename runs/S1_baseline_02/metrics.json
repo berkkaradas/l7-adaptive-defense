@@ -1,0 +1,57 @@
+{
+  "run": "S1_baseline_02",
+  "requests": 1813,
+  "decisions": 0,
+  "identities": {
+    "legit": [
+      "AUTH:208",
+      "AUTH:209",
+      "AUTH:210",
+      "AUTH:211",
+      "AUTH:212"
+    ]
+  },
+  "latency_by_phase": {
+    "warmup": {
+      "n": 301,
+      "median": 16.32,
+      "p90": 22.2,
+      "p95": 26.38,
+      "max": 720.6
+    },
+    "baseline": {
+      "n": 300,
+      "median": 13.69,
+      "p90": 17.41,
+      "p95": 19.04,
+      "max": 30.05
+    },
+    "attack": {
+      "n": 901,
+      "median": 10.33,
+      "p90": 15.04,
+      "p95": 17.3,
+      "max": 114.57
+    },
+    "recovery": {
+      "n": 301,
+      "median": 9.79,
+      "p90": 13.55,
+      "p95": 17.16,
+      "max": 170.32
+    }
+  },
+  "ttd_seconds": {},
+  "fpr": 0.0,
+  "cdr": null,
+  "victim_lockout": null,
+  "precision_recall": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "precision": null,
+    "recall": null
+  },
+  "classification": {},
+  "problems": []
+}

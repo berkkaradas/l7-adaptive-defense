@@ -1,0 +1,75 @@
+{
+  "run": "S3_adaptive_04",
+  "requests": 1972,
+  "decisions": 110,
+  "identities": {
+    "legit": [
+      "AUTH:332",
+      "AUTH:333",
+      "AUTH:334",
+      "AUTH:335",
+      "AUTH:336"
+    ],
+    "innocent": [
+      "ATTEMPT:172.19.0.1,innocent_1_r1788002945665",
+      "ATTEMPT:172.19.0.1,innocent_2_r1788002945665"
+    ],
+    "victim": [
+      "ATTEMPT:172.19.0.1,victim_1_r1788002945665"
+    ],
+    "attacker": [
+      "ATTEMPT:172.19.0.1,victim_1_r1788002945665"
+    ]
+  },
+  "latency_by_phase": {
+    "warmup": {
+      "n": 300,
+      "median": 8.99,
+      "p90": 15.15,
+      "p95": 16.78,
+      "max": 356.18
+    },
+    "baseline": {
+      "n": 307,
+      "median": 7.95,
+      "p90": 13.16,
+      "p95": 14.02,
+      "max": 81.8
+    },
+    "attack": {
+      "n": 918,
+      "median": 6.83,
+      "p90": 11.23,
+      "p95": 12.69,
+      "max": 85.35
+    },
+    "recovery": {
+      "n": 308,
+      "median": 5.8,
+      "p90": 9.14,
+      "p95": 11.06,
+      "max": 68.66
+    }
+  },
+  "ttd_seconds": {
+    "ATTEMPT:172.19.0.1,victim_1_r1788002945665": 7.987
+  },
+  "fpr": 0.0,
+  "cdr": 0.0,
+  "victim_lockout": 0.1667,
+  "precision_recall": {
+    "tp": 1,
+    "fp": 0,
+    "fn": 0,
+    "precision": 1.0,
+    "recall": 1.0
+  },
+  "classification": {
+    "ATTEMPT:172.19.0.1,victim_1_r1788002945665": {
+      "CREDENTIAL_ATTACK": 110
+    }
+  },
+  "problems": [
+    "1 karar bu koşunun zaman aralığı dışındaydı ve atıldı -> döküm penceresi yanlış ya da dosya bayat"
+  ]
+}

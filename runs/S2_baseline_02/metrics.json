@@ -1,0 +1,62 @@
+{
+  "run": "S2_baseline_02",
+  "requests": 1902,
+  "decisions": 0,
+  "identities": {
+    "legit": [
+      "AUTH:218",
+      "AUTH:219",
+      "AUTH:220",
+      "AUTH:221",
+      "AUTH:222"
+    ],
+    "attacker": [
+      "ATTEMPT:172.19.0.1,legit_1_r1787995415526"
+    ]
+  },
+  "latency_by_phase": {
+    "warmup": {
+      "n": 300,
+      "median": 14.12,
+      "p90": 25.97,
+      "p95": 33.48,
+      "max": 751.16
+    },
+    "baseline": {
+      "n": 300,
+      "median": 11.46,
+      "p90": 16.55,
+      "p95": 19.72,
+      "max": 83.72
+    },
+    "attack": {
+      "n": 901,
+      "median": 9.09,
+      "p90": 14.24,
+      "p95": 16.99,
+      "max": 476.56
+    },
+    "recovery": {
+      "n": 301,
+      "median": 7.66,
+      "p90": 9.72,
+      "p95": 12.6,
+      "max": 32.9
+    }
+  },
+  "ttd_seconds": {
+    "ATTEMPT:172.19.0.1,legit_1_r1787995415526": null
+  },
+  "fpr": 0.0,
+  "cdr": null,
+  "victim_lockout": null,
+  "precision_recall": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 1,
+    "precision": null,
+    "recall": 0.0
+  },
+  "classification": {},
+  "problems": []
+}

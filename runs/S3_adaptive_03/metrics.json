@@ -1,0 +1,73 @@
+{
+  "run": "S3_adaptive_03",
+  "requests": 1974,
+  "decisions": 111,
+  "identities": {
+    "legit": [
+      "AUTH:284",
+      "AUTH:285",
+      "AUTH:286",
+      "AUTH:287",
+      "AUTH:288"
+    ],
+    "victim": [
+      "ATTEMPT:172.19.0.1,victim_1_r1787999804238"
+    ],
+    "innocent": [
+      "ATTEMPT:172.19.0.1,innocent_1_r1787999804238",
+      "ATTEMPT:172.19.0.1,innocent_2_r1787999804238"
+    ],
+    "attacker": [
+      "ATTEMPT:172.19.0.1,victim_1_r1787999804238"
+    ]
+  },
+  "latency_by_phase": {
+    "warmup": {
+      "n": 301,
+      "median": 7.95,
+      "p90": 14.41,
+      "p95": 16.24,
+      "max": 320.48
+    },
+    "baseline": {
+      "n": 308,
+      "median": 6.63,
+      "p90": 9.45,
+      "p95": 11.59,
+      "max": 86.56
+    },
+    "attack": {
+      "n": 919,
+      "median": 5.47,
+      "p90": 8.21,
+      "p95": 10.98,
+      "max": 78.12
+    },
+    "recovery": {
+      "n": 308,
+      "median": 5.55,
+      "p90": 7.91,
+      "p95": 10.44,
+      "max": 80.64
+    }
+  },
+  "ttd_seconds": {
+    "ATTEMPT:172.19.0.1,victim_1_r1787999804238": 8.004
+  },
+  "fpr": 0.0,
+  "cdr": 0.0,
+  "victim_lockout": 0.1579,
+  "precision_recall": {
+    "tp": 1,
+    "fp": 0,
+    "fn": 0,
+    "precision": 1.0,
+    "recall": 1.0
+  },
+  "classification": {
+    "ATTEMPT:172.19.0.1,victim_1_r1787999804238": {
+      "CREDENTIAL_ATTACK": 111
+    }
+  },
+  "problems": []
+}

@@ -1,0 +1,14 @@
+﻿run_id=S3_adaptive_04
+scenario=s3
+condition=adaptive
+repeat=4
+smoke=False
+started_at=2026-08-29T12:29:05
+finished_at=2026-08-29T12:35:11
+decisions_offset_start=2770
+decisions_offset_end=2881
+decisions_count=111
+consumer_lag_after=0
+gateway_drop_reports=1
+verdict=VALID
+invalid_reasons=

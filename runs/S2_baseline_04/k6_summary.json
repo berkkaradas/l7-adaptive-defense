@@ -1,0 +1,170 @@
+{
+    "root_group": {
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {},
+        "checks": {
+                "legitimate request served": {
+                    "name": "legitimate request served",
+                    "path": "::legitimate request served",
+                    "id": "496bb9ffcefc2d25006e88b10ffa8e0f",
+                    "passes": 1804,
+                    "fails": 0
+                },
+                "attack did not succeed": {
+                    "passes": 91,
+                    "fails": 0,
+                    "name": "attack did not succeed",
+                    "path": "::attack did not succeed",
+                    "id": "954802c64f40b36e5bd9d9cba4c90ec9"
+                }
+            },
+        "name": ""
+    },
+    "metrics": {
+        "vus": {
+            "value": 1,
+            "min": 0,
+            "max": 1
+        },
+        "http_req_duration": {
+            "min": 3.2213,
+            "med": 6.5818,
+            "max": 281.4391,
+            "p(90)": 11.2613,
+            "p(95)": 66.2022,
+            "avg": 10.848414908136505
+        },
+        "http_req_duration{expected_response:true}": {
+            "med": 6.4817,
+            "max": 281.4391,
+            "p(90)": 9.9883,
+            "p(95)": 11.571974999999997,
+            "avg": 7.870770507166474,
+            "min": 3.2213
+        },
+        "http_req_sending": {
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0.01134451443569554,
+            "min": 0,
+            "med": 0,
+            "max": 0.8018
+        },
+        "data_sent": {
+            "count": 522861,
+            "rate": 1447.5960014700765
+        },
+        "http_req_blocked": {
+            "min": 0,
+            "med": 0,
+            "max": 3.1129,
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0.016138635170603672
+        },
+        "checks": {
+            "passes": 1895,
+            "fails": 0,
+            "value": 1
+        },
+        "http_req_waiting": {
+            "avg": 10.287485196850406,
+            "min": 2.6918,
+            "med": 6.0807,
+            "max": 280.9059,
+            "p(90)": 10.286140000000001,
+            "p(95)": 66.1982
+        },
+        "data_received": {
+            "count": 505468,
+            "rate": 1399.4416406484258
+        },
+        "iterations": {
+            "rate": 5.246508006498467,
+            "count": 1895
+        },
+        "http_reqs": {
+            "count": 1905,
+            "rate": 5.274194064580253
+        },
+        "http_req_tls_handshaking": {
+            "p(95)": 0,
+            "avg": 0,
+            "min": 0,
+            "med": 0,
+            "max": 0,
+            "p(90)": 0
+        },
+        "vus_max": {
+            "value": 42,
+            "min": 42,
+            "max": 42
+        },
+        "http_req_receiving": {
+            "min": 0,
+            "med": 0.5206,
+            "max": 6.2767,
+            "p(90)": 1.10874,
+            "p(95)": 1.406119999999999,
+            "avg": 0.5495851968503935
+        },
+        "iteration_duration": {
+            "max": 270.391,
+            "p(90)": 11.340600000000006,
+            "p(95)": 25.30847999999985,
+            "avg": 10.440767018469682,
+            "min": 3.2213,
+            "med": 6.7051
+        },
+        "http_req_connecting": {
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0.01246729658792651,
+            "min": 0,
+            "med": 0,
+            "max": 1.2293
+        },
+        "http_req_failed": {
+            "passes": 91,
+            "fails": 1814,
+            "value": 0.047769028871391075
+        }
+    },
+    "setup_data": {
+        "attackerIdentity": "ATTEMPT:172.19.0.1,legit_1_r1788001765122",
+        "legit": [
+            {
+                "identity": "AUTH:314",
+                "memberId": 314,
+                "token": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsZWdpdF8xX3IxNzg4MDAxNzY1MTIyIiwibWVtYmVySWQiOjMxNCwiaWF0IjoxNzg4MDAxNzY1LCJleHAiOjE3ODgwMDI2NjV9.8KPyzFs2pmC-DKpG7MyISThDuT-k22fh_llBViafj1Q",
+                "username": "legit_1_r1788001765122"
+            },
+            {
+                "identity": "AUTH:315",
+                "memberId": 315,
+                "token": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsZWdpdF8yX3IxNzg4MDAxNzY1MTIyIiwibWVtYmVySWQiOjMxNSwiaWF0IjoxNzg4MDAxNzY1LCJleHAiOjE3ODgwMDI2NjV9.Q9gi3WNVKv0PvdXonyx9v0Ivk5qY1LkCaFhgX0FyHl0",
+                "username": "legit_2_r1788001765122"
+            },
+            {
+                "memberId": 316,
+                "token": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsZWdpdF8zX3IxNzg4MDAxNzY1MTIyIiwibWVtYmVySWQiOjMxNiwiaWF0IjoxNzg4MDAxNzY1LCJleHAiOjE3ODgwMDI2NjV9.j089txke7SD5c3qJdcpCmpCgf6nVIZb-aiccIrkiuaY",
+                "username": "legit_3_r1788001765122",
+                "identity": "AUTH:316"
+            },
+            {
+                "identity": "AUTH:317",
+                "memberId": 317,
+                "token": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsZWdpdF80X3IxNzg4MDAxNzY1MTIyIiwibWVtYmVySWQiOjMxNywiaWF0IjoxNzg4MDAxNzY2LCJleHAiOjE3ODgwMDI2NjZ9.rlL8wW6KeSTPRjmWhV4NBiiIYO73bLWl5lPXrKlBmEo",
+                "username": "legit_4_r1788001765122"
+            },
+            {
+                "username": "legit_5_r1788001765122",
+                "identity": "AUTH:318",
+                "memberId": 318,
+                "token": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsZWdpdF81X3IxNzg4MDAxNzY1MTIyIiwibWVtYmVySWQiOjMxOCwiaWF0IjoxNzg4MDAxNzY2LCJleHAiOjE3ODgwMDI2NjZ9.w4z0PHMEoVW5Mh23D3KwYFaDwOlUT2e28kjZg7xs7wo"
+            }
+        ],
+        "victim": "legit_1_r1788001765122"
+    }
+}

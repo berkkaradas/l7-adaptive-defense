@@ -1,0 +1,64 @@
+{
+  "run": "S4_baseline_04",
+  "requests": 646,
+  "decisions": 0,
+  "identities": {
+    "legit": [
+      "AUTH:340",
+      "AUTH:341",
+      "AUTH:342",
+      "AUTH:343",
+      "AUTH:344"
+    ],
+    "attacker": [
+      "AUTH:345"
+    ]
+  },
+  "latency_by_phase": {
+    "warmup": {
+      "n": 61,
+      "median": 9.79,
+      "p90": 13.87,
+      "p95": 14.54,
+      "max": 374.36
+    },
+    "baseline": {
+      "n": 61,
+      "median": 8.71,
+      "p90": 12.05,
+      "p95": 14.97,
+      "max": 1014.96
+    },
+    "attack": {
+      "n": 181,
+      "median": 1006.75,
+      "p90": 1011.41,
+      "p95": 1014.85,
+      "max": 1107.16
+    },
+    "recovery": {
+      "n": 60,
+      "median": 10.04,
+      "p90": 20.96,
+      "p95": 24.46,
+      "max": 519.91
+    }
+  },
+  "ttd_seconds": {
+    "AUTH:345": null
+  },
+  "fpr": 0.0,
+  "cdr": null,
+  "victim_lockout": null,
+  "precision_recall": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 1,
+    "precision": null,
+    "recall": 0.0
+  },
+  "classification": {},
+  "problems": [
+    "meşru trafikte 200 olmayan yanıtlar: {'500': 191}"
+  ]
+}
