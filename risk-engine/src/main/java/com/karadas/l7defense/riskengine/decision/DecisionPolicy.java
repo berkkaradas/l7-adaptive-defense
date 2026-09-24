@@ -126,8 +126,7 @@ public class DecisionPolicy {
                     : Decision.RATE_LIMIT;
 
             // Diğer tiplerde saldırgan kendi kaynağını harcıyor, burada
-            // başkasınınkini. Tolerans bandı bu yüzden daha dar: düşük şiddette
-            // bile doğrudan DROP.
+            // başkasınınkini: orta şiddette RATE_LIMIT, ağır şiddette DROP.
             case RESOURCE_EXHAUSTION -> severity == Severity.SEVERE
                     ? Decision.DROP
                     : Decision.RATE_LIMIT;

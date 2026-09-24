@@ -31,7 +31,7 @@ Java 21, Spring Boot 4 (WebFlux for the gateway, MVC + virtual threads for the r
 docker compose up -d
 ```
 
-Gateway is the only port exposed (8080), everything else is internal-only.
+Clients only ever talk to the Gateway (8080). PostgreSQL (5432) and Kafka (29092) are also published on the host for local debugging and for the run scripts.
 
 ```bash
 curl -X POST localhost:8080/auth/register -H "Content-Type: application/json" -d '{"username":"alice","password":"CorrectHorseBattery1"}'

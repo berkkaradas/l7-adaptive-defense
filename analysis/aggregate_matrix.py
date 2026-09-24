@@ -29,7 +29,7 @@ CONDITIONS = ("baseline", "adaptive")
 
 SCENARIO_TITLES = {
     "S1": "S1 -- Normal load, no attack",
-    "S2": "S2 -- Distributed credential stuffing",
+    "S2": "S2 -- Low-and-slow brute force",
     "S3": "S3 -- Shared address (NAT)",
     "S4": "S4 -- Internal degradation",
 }
